@@ -1,8 +1,11 @@
 from chatterbot import ChatBot
 from chatterbot.comparisons import LevenshteinDistance
+from chatterbot.comparisons import SynsetDistance
 from chatterbot.conversation import Statement
 from chatterbot.trainers import ListTrainer
 from chatterbot.trainers import ChatterBotCorpusTrainer
+from chatterbot.logic.best_match import BestMatch
+from chatterbot.response_selection import get_random_response
 from chatterbot.logic import LogicAdapter
 from chatterbot.search import IndexedTextSearch
 from chatterbot import utils
@@ -10,6 +13,7 @@ import os
 import sys
 #chatterbot.utils.import_module( dotted_path )
 levenshtein_distance = LevenshteinDistance()
+synset_distance= SynsetDistance()
 
 #import nltk
 #nltk.download('stopwords')
@@ -24,18 +28,27 @@ storage_adapter='chatterbot.storage.SQLStorageAdapter',
     input_adapter='chatterbot.input.TerminalAdapter',
     output_adapter='chatterbot.output.TerminalAdapter',
 
+
 read_only=True,
 )
 logic_adapters=[{
         "import_path": "chatterbot.logic.BestMatch",
             "statement_comparison_function": "chatterbot.comparisons.levenshtein_distance",
-            "response_selection_method": "chatterbot.response_selection.get_first_response",
+            "response_selection_method": "chatterbot.response_selection.get_random_response",
+    },
+    {
+            'import_path': 'chatterbot.logic.LowConfidenceAdapter',
+            'threshold': 0.65,
+            'default_response': 'lo siento pero no encuentro nada sobre esta conversacion.'
+
     }]
 
 
 trainer = ChatterBotCorpusTrainer(chatbot)
 chatbott=ListTrainer(chatbot)
 chatbott=ListTrainer(chatbot)
+
+
 
 #trainer.train('chatterbot.corpus.spanish')
 #trainer.train("./AI.yml")
@@ -83,6 +96,15 @@ while True:
 
 
     # chatterbot.utils.get_response_time(chatbot, declaración='Hola')
+    contador=0
+    bib = 0.0
+    bib = synset_distance.compare(entrada, respuesta)
+#    print("BoB: " + bib)
+    while True:
+              if synset_distance.compare(entrada, respuesta) < 0.61:
+                  respuesta = chatbot.get_response(usuario)
+                  print("BoB: " + str(respuesta))
+                  break
 
 
 
